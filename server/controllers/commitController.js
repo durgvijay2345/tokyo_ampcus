@@ -2,7 +2,7 @@ const Analysis = require("../models/Analysis");
 
 exports.getCommitsByAnalysisId = async (req, res) => {
   try {
-    const doc = await Analysis.findByID(req.params.analysisId)
+    const doc = await Analysis.findById(req.params.analysisId)
       .select("result.commits")
       .lean();
 
