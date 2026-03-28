@@ -6,7 +6,7 @@ exports.getCommitsByAnalysisId = async (req, res) => {
       .select("result.commits")
       .lean();
 
-    if (doc) {
+    if (!doc) {
       return res.status(404).json({ error: "Analysis not found" });
     }
 
