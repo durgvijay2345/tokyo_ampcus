@@ -10,7 +10,7 @@ exports.getCommitsByAnalysisId = async (req, res) => {
       return res.status(404).json({ error: "Analysis not found" });
     }
 
-    res.json(doc.result.commitss || []);
+    res.json(doc.result.commits || []);
   } catch (err) {
     console.log("Commits route error:", err.message);
     res.status(500).json({ error: "Failed to fetch commits" });
