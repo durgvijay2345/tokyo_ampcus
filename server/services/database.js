@@ -8,8 +8,16 @@ const Analysis = require('../models/Analysis');
 
 async function connectDB() {
   const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/tokyo_pulse';
-  await mongoose.connect(uri);
-  console.log('✅ Connected to MongoDB');
+  console.log('Connecting to MongoDB...');
+  try {
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000 
+    });
+    console.log(' Connected to MongoDB');
+  } catch (err) {
+    console.error(' MongoDB Connection Error:', err.message);
+    throw err;
+  }
 }
 
 
@@ -64,7 +72,7 @@ async function getAnalysisByUrl(repoUrl) {
 
   if (!doc) return null;
 
-  // Check freshness (10-minute TTL)
+ 
   const age = Date.now() - new Date(doc.analyzedAt).getTime();
   if (age > 10 * 60 * 1000) return null;
 
