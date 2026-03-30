@@ -1,16 +1,21 @@
+
+
 const mongoose = require('mongoose');
+
 const Analysis = require('../models/Analysis');
+
+
 
 async function connectDB() {
   const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/tokyo_pulse';
-  console.log('⏳ Connecting to MongoDB...');
+  console.log('Connecting to MongoDB...');
   try {
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000 // 5-second timeout
+      serverSelectionTimeoutMS: 5000 
     });
-    console.log('✅ Connected to MongoDB');
+    console.log(' Connected to MongoDB');
   } catch (err) {
-    console.error('❌ MongoDB Connection Error:', err.message);
+    console.error(' MongoDB Connection Error:', err.message);
     throw err;
   }
 }
@@ -67,17 +72,11 @@ async function getAnalysisByUrl(repoUrl) {
 
   if (!doc) return null;
 
-  // Check freshness (10-minute TTL)
+ 
   const age = Date.now() - new Date(doc.analyzedAt).getTime();
   if (age > 10 * 60 * 1000) return null;
 
   return doc.result;
 }
 
-async function deleteAnalysisById(id) {
-  if (!mongoose.Types.ObjectId.isValid(id)) return false;
-  const result = await Analysis.findByIdAndDelete(id);
-  return !!result;
-}
-
-module.exports = { connectDB, saveAnalysis, getAnalysisList, getAnalysisById, getAnalysisByUrl, deleteAnalysisById };
+module.exports = { connectDB, saveAnalysis, getAnalysisList, getAnalysisById, getAnalysisByUrl };
