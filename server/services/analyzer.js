@@ -153,3 +153,42 @@ function computeCommitTimeline(commits) {
 function detectCodeChurn(commits) {
   return [];
 }
+
+async function analyze(repoData) {
+  const { repoInfo, commits, contributors, pullRequests, contributorStats } = repoData;
+
+  console.log(' Running analysis engine...');
+
+  let geminiResults = null;
+  const detailedCommits = commits.slice(0, 30);
+
+  if (detailedCommits.length > 0) {
+    geminiResults = await analyzeCommitsBatch(detailedCommits);
+  }
+
+  const profiles = await analyzeContributions(commits, contributors, pullRequests, geminiResults);
+
+  const busFactor = computeBusFactor(profiles);
+  const healthScore = computeHealthScore(profiles, commits);
+  const timeline = computeCommitTimeline(commits, geminiResults);
+  const codeChurn = detectCodeChurn(commits);
+
+  const insights = generateInsights(profiles, busFactor, healthScore, codeChurn);
+
+  return {
+    repository: {
+      name: repoInfo.full_name
+    },
+    summary: {
+      totalCommits: commits.length
+    },
+    contributors: profiles,
+    busFactor,
+    healthScore,
+    codeChurn,
+    insights,
+    analyzedAt: new Date().toISOString()
+  };
+}
+
+module.exports = { analyze };
