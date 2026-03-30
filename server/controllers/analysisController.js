@@ -21,18 +21,18 @@ exports.analyzeRepository = async (req, res) => {
       return res.status(400).json({ error: 'repoUrl is required' });
     }
 
-    // Check in-memory cache first (hot path)
+    // Check cache first (hot path)
     const cacheKey = `analysis:${repoUrl}`;
-    if (cache.has(cacheKey)) {
-      console.log(' Returning cached result (memory)');
-      return res.json({ ...cache.get(cacheKey), cached: true, source: 'memory' });
+    if (await cache.has(cacheKey)) {
+      console.log(' Returning cached result (cache)');
+      return res.json({ ...(await cache.get(cacheKey)), cached: true, source: 'cache' });
     }
 
     // Check persistent database (warm path)
     const stored = await db.getAnalysisByUrl(repoUrl);
     if (stored) {
       console.log(' Returning stored result (database)');
-      cache.set(cacheKey, stored); // Refresh in-memory cache
+      await cache.set(cacheKey, stored); // Refresh cache
       return res.json({ ...stored, cached: true, source: 'database' });
     }
 
@@ -41,7 +41,7 @@ exports.analyzeRepository = async (req, res) => {
     const result = await analyze(repoData);
 
     // Store in both cache and database
-    cache.set(cacheKey, result);
+    await cache.set(cacheKey, result);
     await db.saveAnalysis(repoUrl, result);
 
     res.json(result);
@@ -79,5 +79,20 @@ exports.getAnalysisById = async (req, res) => {
   } catch (err) {
     console.error('Analysis lookup error:', err.message);
     res.status(500).json({ error: 'Failed to retrieve analysis' });
+  }
+};
+
+exports.deleteHistoryById = async (req, res) => {
+  try {
+    const success = await db.deleteAnalysisById(req.params.id);
+    if (!success) {
+      return res.status(404).json({ error: 'Analysis not found' });
+    }
+    // Note: Since we don't have the repoUrl, we can't reliably flush its specific cache key here, 
+    // but the db entry is gone. Hot cache will naturally timeout.
+    res.json({ message: 'Analysis deleted successfully' });
+  } catch (err) {
+    console.error('Delete history error:', err.message);
+    res.status(500).json({ error: 'Failed to delete analysis' });
   }
 };
