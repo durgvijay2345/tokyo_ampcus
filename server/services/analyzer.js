@@ -113,3 +113,43 @@ function inferRole(authorCommits, totalCommits) {
   if (ratio >= 0.03) return 'Occasional Contributor';
   return 'Drive-by Contributor';
 }
+function computeBusFactor(profiles) {
+  if (profiles.length === 0) return { value: 0, details: [], totalContributors: 0 };
+
+  const totalCommits = profiles.reduce((s, p) => s + p.commits, 0);
+  const sorted = [...profiles].sort((a, b) => b.commits - a.commits);
+
+  let accumulated = 0;
+  let busFactor = 0;
+
+  for (const p of sorted) {
+    accumulated += p.commits;
+    busFactor++;
+    if (accumulated / totalCommits >= 0.5) break;
+  }
+
+  return { value: busFactor, totalContributors: profiles.length };
+}
+
+function computeHealthScore(profiles, commits) {
+  const scores = {};
+  scores.contributionBalance = 80;
+  scores.commitQuality = 70;
+  scores.activityConsistency = 75;
+
+  const overall = Math.round(
+    scores.contributionBalance * 0.35 +
+    scores.commitQuality * 0.35 +
+    scores.activityConsistency * 0.30
+  );
+
+  return { overall, ...scores };
+}
+
+function computeCommitTimeline(commits) {
+  return { daily: [], weekly: [] };
+}
+
+function detectCodeChurn(commits) {
+  return [];
+}
