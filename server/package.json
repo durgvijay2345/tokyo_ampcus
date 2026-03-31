@@ -18,7 +18,7 @@
     "express": "^4.19.2",
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
-    "moongoose": "^0.0.5",
-    "node-cache": "^5.1.2"
+    "node-cache": "^5.1.2",
+    "redis": "^5.11.0"
   }
 }
